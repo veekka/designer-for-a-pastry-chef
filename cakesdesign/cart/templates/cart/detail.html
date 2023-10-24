@@ -1,0 +1,53 @@
+{% extends "design/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="text-block-other"> Ваша продуктовая корзина </div>
+
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Фото</th>
+                <th scope="col">Название</th>
+                <th scope="col">Количество</th>
+                <th scope="col">Удалить</th>
+                <th scope="col">Цена за 1 шт</th>
+                <th scope="col">Общая цена</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in cart %}
+            {% with product=item.product %}
+                <tr>
+                    <td>
+                        <a href="{{ product.get_absolute_url }}">
+                            <img class="img-article-left thumb" src="
+                                {% if product.photo %}
+                                    {{ product.photo.url }}
+                                {% else %}
+                                    {% static 'img/no_image.png' %}
+                                {% endif %}"
+                            style="width:150px;height:100px;">
+                        </a>
+                    </td>
+                    <td>{{ product.title }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td><a id="delete" href="{% url 'cart:cart_remove' product.id%}">Удалить</a></td>
+                    <td class="num">{{ item.price }} BYN</td>
+                    <td class="num"><b>{{ item.total_price }} BYN</b></td>
+                </tr>
+            {% endwith %}
+        {% endfor %}
+        <tr class="total">
+            <td>Итого</td>
+            <td colspan="4"></td>
+            <td class="num"><b>{{ cart.get_total_price }} BYN</b></td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="choice-right">
+        <a href="{% url 'catalog' %}" class="btn btn-lg" style="background-color: #f2eceb;">Продолжить покупки</a>
+        <a href="#" class="btn btn-lg" style="background-color: #f2eceb;">Оплата</a>
+    </div>
+{% endblock %}

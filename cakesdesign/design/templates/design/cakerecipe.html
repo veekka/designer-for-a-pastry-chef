@@ -1,0 +1,31 @@
+{% extends 'design/base.html'%}
+{% block content %}
+<div class="text-block-other"> Рецепт торта на форму {{form_params}} см</div>
+
+<nav id="crumbs" style="margin-left: 50px;" aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'makechoice' %}">Выбор десерта</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'bycakerecipe' %}">Выбор торта</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Рецепт</li>
+  </ol>
+</nav>
+
+
+<div class="recipe-box">
+    <div class="recipe-block-left">
+        <p><img class="img-article-left thumb" src="{{ photo.url}}" style="width:300px;height:200px;"></p>
+    </div>
+
+        <div class="recipe-block-right">
+                {% for key, value in recipe_dict.items %}
+                <div class="print-ingredients"> {{key}} - {{value}}</div>
+                {% endfor %}
+
+        </div>
+</div>
+
+<div class="text-block-index"> Этапы приготовления </div>
+<div class="text-recipe">{{recipe|linebreaks}}</div>
+
+{% endblock %}

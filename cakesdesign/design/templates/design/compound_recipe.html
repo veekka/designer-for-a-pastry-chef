@@ -1,0 +1,68 @@
+{% extends 'design/base.html'%}
+{% block content %}
+<div class="text-block-other"> Рецепт индивидуального торта на форму {{form_params}} см</div>
+
+
+<nav id="crumbs" style="margin-left: 50px;" aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'makechoice' %}">Выбор десерта</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'constructor' %}">Конструктор</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Рецепт</li>
+  </ol>
+</nav>
+
+
+
+<div class="recipe-box">
+    <div class="recipe-block-left">
+        <h4>Для коржа понадобится:</h4>
+        <p><img class="img-article-left thumb" src="{{ photo_crust.url}}" style="width:300px;height:200px;"></p>
+    </div>
+        <div class="recipe-block-right">
+                {% for key, value in ingred_dict_crust.items %}
+                        <div class="print-ingredients"> {{key}} - {{value}}</div>
+                {% endfor %}
+        </div>
+</div>
+
+<div class="recipe-box">
+    <div class="recipe-block-left">
+        <h4>Для крема внутри коржа понадобится:</h4>
+        <p><img class="img-article-left thumb" src="{{ photo_cream_in.url}}" style="width:300px;height:200px;"></p>
+    </div>
+        <div class="recipe-block-right">
+                {% for key, value in ingred_dict_cream_in.items %}
+                        <div class="print-ingredients"> {{key}} - {{value}}</div>
+                {% endfor %}
+
+        </div>
+</div>
+
+<div class="recipe-box">
+    <div class="recipe-block-left">
+        <h4>Для крема для выравнивания понадобится:</h4>
+        <p><img class="img-article-left thumb" src="{{ photo_cream_out.url}}" style="width:300px;height:200px;"></p>
+    </div>
+        <div class="recipe-block-right">
+                {% for key, value in ingred_dict_cream_out.items %}
+                        <div class="print-ingredients"> {{key}} - {{value}}</div>
+                {% endfor %}
+        </div>
+</div>
+
+<div class="text-block-index"> Рецепт коржа </div>
+<div class="text-recipe">{{recipe_crust|linebreaks}}</div>
+<div class="text-block-index"> Рецепт крема внутри коржа </div>
+<div class="text-recipe">{{recipe_cream_in|linebreaks}}</div>
+<div class="text-block-index"> Рецепт крема для выравнивания </div>
+<div class="text-recipe">{{recipe_cream_out|linebreaks}}</div>
+
+
+<div class="text-block-index"> Весь список ингредиентов </div>
+<div class="text-recipe">
+    {% for key, value in all_ingred_dict.items %}
+        <div class="print-ingredients"> {{key}} - {{value}}</div>
+    {% endfor %}
+</div>
+{% endblock %}

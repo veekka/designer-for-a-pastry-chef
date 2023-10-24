@@ -1,0 +1,74 @@
+{% extends 'design/base.html'%}
+{% block content %}
+
+<div class="text-block-other">
+  <h1>Добро пожаловать:)</h1>
+  <p>Сайт предназначен для конструирования своего идеального десерта!</p>
+</div>
+
+
+
+<!-- Карточка для конструктора -->
+<div class="blockcard text-center">
+    <div class="card text-black" >
+        <img src="../static/design/images/constructor.jpg" class="card-img" alt="Constructor">
+        <div class="card-img-overlay mt-5">
+            <a href="{% url 'makechoice' %}" class="card-title">Конструктор для кондитера</a>
+        </div>
+    </div>
+</div>
+
+
+<div class="text-block-index"> Популярные категории </div>
+
+
+<!-- Карточки с категориями -->
+<div class="container text-center">
+  <div class="row">
+
+    <div class="col-sm-6 col-lg-4 ">
+        <div class="card" style="width: 360px;">
+            <a href="category/ingredienty/"><img class="card-img-top" src="../static/design/images/ingredienty.jpg" alt="Baking ingredients" style="width:350px;height:250px;"></a>
+            <a href="category/ingredienty/" class="btn btn-lg" style="background-color: #f2eceb;">Ингредиенты</a>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+        <div class="card" style="width: 360px;">
+            <a href="category/inventar/"><img class="card-img-top" src="../static/design/images/inventar.jpg" alt="Inventory" style="width:350px;height:250px;"></a>
+            <a href="category/inventar/" class="btn btn-lg" style="background-color: #f2eceb;">Инвентарь</a>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+        <div class="card" style="width: 360px;">
+            <a href="category/shokolad/"><img class="card-img-top" src="../static/design/images/chocolate.jpg" alt="Chocolate" style="width:350px;height:250px;"></a>
+            <a href="category/shokolad/" class="btn btn-lg" style="background-color: #f2eceb;">Шоколад</a>
+        </div>
+    </div>
+  </div>
+    <div class="row">
+    <div class="col-sm-6 col-lg-4">
+        <div class="card" style="width: 360px;">
+            <a href="category/dekor/"><img class="card-img-top" src="../static/design/images/decor.jpg" alt="Decor" style="width:350px;height:250px;"></a>
+            <a href="category/dekor/" class="btn btn-lg" style="background-color: #f2eceb;">Декор</a>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+        <div class="card" style="width: 360px;">
+            <a href="category/upakovka/"><img class="card-img-top" src="../static/design/images/bags.jpg" alt="Packaging" style="width:350px;height:250px;"></a>
+            <a href="category/upakovka/" class="btn btn-lg" style="background-color: #f2eceb;">Упаковка</a>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+        <div class="card" style="width: 360px;">
+            <a href="category/formy/"><img class="card-img-top" src="../static/design/images/molds.jpg" alt="Molds" style="width:350px;height:250px;"></a>
+            <a href="category/formy/" class="btn btn-lg" style="background-color: #f2eceb;">Формы</a>
+
+        </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

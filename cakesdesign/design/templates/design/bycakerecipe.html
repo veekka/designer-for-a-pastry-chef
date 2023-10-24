@@ -1,0 +1,32 @@
+{% extends 'design/base.html'%}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="text-block-other"> Выберите рецепт и размер формы для выпечки </div>
+
+<nav id="crumbs" style="margin-left: 50px;" aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'makechoice' %}">Выбор десерта</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Выбор торта</li>
+  </ol>
+</nav>
+
+<div class="form-box">
+    <form action="{% url 'bycakerecipe' %}" method="post">
+        {% csrf_token %}
+        <div class="form-label"><b>
+            {{form|crispy }}
+            </b>
+        </div>
+        <!--
+        <p><label class="form-label" for="{{ form.form_params.id_for_label }}">{{form.form_params.label}}: </label> {{ form.form_params}}</p>
+        <div class="form-error">{{ f.errors }}</div>
+
+        <p><label class="form-label" for="{{ form.cake_recipe.id_for_label }}">{{form.cake_recipe.label}}: </label>{{ form.cake_recipe}}</p>
+        <div class="form-error">{{ f.errors }}</div>
+-->
+        <button type="submit">Принять</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'design/base.html'%}
+
+{% block content %}
+
+<div class="text-block-other"> Каталог товаров </div>
+
+<nav id="crumbs" style="margin-left: 50px;" aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Каталог</li>
+  </ol>
+</nav>
+
+<div class="box">
+    <div class="catalog-block-left">
+
+        {% if cat_selected == 0 %}
+            <div class="link-show-category" >Все категории</div>
+        {% else %}
+		    <a href="{% url 'catalog' %}"><div class="link-show-category" >Все категории</div></a>
+        {% endif %}
+
+        {% for c in cats %}
+	        {% if c.pk == cat_selected %}
+		        <div class="link-show-category" >{{c.title}}</div>
+	        {% else %}
+		        <a href="{{ c.get_absolute_url }}"><div class="link-show-category" >{{c.title}}</div></a>
+            {% endif %}
+        {% endfor %}
+
+    </div>
+
+    <div class="catalog-block-right">
+
+        <div class="cat-grid">
+         {% for p in object_list %}
+            <div class="card text-center" style="width: 350px;height:300px;">
+                {% if p.photo %}
+                    <p><a href="{{ p.get_absolute_url}}"><img class="img-article-left thumb" src="{{ p.photo.url}}" style="width:250px;height:150px;"></a></p>
+                {% endif %}
+                <a id="text-link" href="{{ p.get_absolute_url}}">{{ p.title }}</a>
+                <p class="price"><b>{{ p.price }} BYN</b></p>
+                    <form action="{% url 'cart:cart_add' p.id %}" method="post">
+                        {{ cart_product_form }}
+                        {% csrf_token %}
+                        <button type="submit">В корзину</button>
+                    </form>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+
+
+{% endblock %}

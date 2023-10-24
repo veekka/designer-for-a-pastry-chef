@@ -1,0 +1,33 @@
+{% extends 'design/base.html'%}
+{% block content %}
+<div class="text-block-other">{{ product.title }} </div>
+
+<nav id="crumbs" style="margin-left: 50px;" aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'catalog' %}">Каталог</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Товар</li>
+  </ol>
+</nav>
+
+
+
+<div class="product-box">
+    <div class="product-block-left">
+        <p><img class="img-article-left thumb" src="{{ product.photo.url }}" style="width:400px;height:300px;"></p>
+    </div>
+        <div class="product-block-right">
+            <p><b>{{ product.title }}</b></p>
+
+            <p>{{ product.description }}</p>
+           <p class="price"><b>{{ product.price }} BYN</b></p>
+                    <form action="{% url 'cart:cart_add' product.id %}" method="post">
+                        {{ cart_product_form }}
+                        {% csrf_token %}
+                        <button type="submit">В корзину</button>
+                    </form>
+
+        </div>
+</div>
+
+{% endblock %}

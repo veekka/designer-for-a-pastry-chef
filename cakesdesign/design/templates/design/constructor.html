@@ -1,0 +1,32 @@
+{% extends 'design/base.html'%}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="text-block-other"> Конструктор для создания своего идеального десерта! </div>
+
+<nav id="crumbs" style="margin-left: 50px;" aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'makechoice' %}">Выбор десерта</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Конструктор</li>
+  </ol>
+</nav>
+
+
+<div class="form-box">
+    <form action="{% url 'constructor' %}" method="post">
+        {% csrf_token %}
+        <div class="form-label"><b>
+            {{form|crispy }}
+            </b>
+        </div>
+<!--
+        {% for f in form %}
+            <p><label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: </label>{{ f }}</p>
+            <div class="form-error">{{ f.errors }}</div>
+        {% endfor %}
+-->
+        <button type="submit">Принять</button>
+    </form>
+</div>
+{% endblock %}
