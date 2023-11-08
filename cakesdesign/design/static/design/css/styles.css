@@ -203,6 +203,10 @@ margin: 6px;
 width: calc(70% - 12px);
 vertical-align: top;
 }
+.recipe-block-right h4{
+color: 000000 !important;
+}
+
 .text-recipe{
 margin-top: 10px;
 margin-left: 300px;

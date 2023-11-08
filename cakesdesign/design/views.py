@@ -103,26 +103,30 @@ def constructor(request):
             cream_choice_out = request.POST.get("cream_choice_out", "Undefined")
 
             if form_params > 10:
-                koef = int((form_params*form_params) / 100)
+                koef = round((form_params*form_params) / 100, 1)
             else:
                 koef = 1
+
 
             res_tb = Recipes.objects.all()
             res_ingred_tb = RecipesIngredients.objects.all()
             ingred_tb = Ingredients.objects.all()
 
             r_crust = res_tb.get(pk=crust_choice)
+            recipe_crust_title = r_crust.title
             recipe_crust = r_crust.recipe
             photo_crust = r_crust.photo
             d_crust = res_ingred_tb.values('count', 'measure', 'ingredient_id').filter(recipe_id=crust_choice)
 
             r_cream_in = res_tb.get(pk=cream_choice_in)
+            r_cream_in_title = r_cream_in.title
             recipe_cream_in = r_cream_in.recipe
             photo_cream_in = r_cream_in.photo
             d_cream_in = res_ingred_tb.values('count', 'measure', 'ingredient_id').filter(
                 recipe_id=cream_choice_in)
 
             r_cream_out = res_tb.get(pk=cream_choice_out)
+            r_cream_out_title = r_cream_out.title
             recipe_cream_out = r_cream_out.recipe
             photo_cream_out = r_cream_out.photo
             d_cream_out = res_ingred_tb.values('count', 'measure', 'ingredient_id').filter(
@@ -155,12 +159,15 @@ def constructor(request):
             context = {
                 "title": "Составной рецепт",
                 "ingred_dict_crust": ingred_dict_crust,
+                "recipe_crust_title": recipe_crust_title,
                 "recipe_crust": recipe_crust,
                 "photo_crust": photo_crust,
                 "ingred_dict_cream_in": ingred_dict_cream_in,
+                "r_cream_in_title": r_cream_in_title,
                 "recipe_cream_in": recipe_cream_in,
                 "photo_cream_in": photo_cream_in,
                 "ingred_dict_cream_out": ingred_dict_cream_out,
+                "r_cream_out_title": r_cream_out_title,
                 "recipe_cream_out": recipe_cream_out,
                 "photo_cream_out": photo_cream_out,
                 "all_ingred_dict": all_ingred_dict,

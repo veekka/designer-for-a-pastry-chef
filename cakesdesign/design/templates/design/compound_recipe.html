@@ -19,7 +19,9 @@
         <h4>Для коржа понадобится:</h4>
         <p><img class="img-article-left thumb" src="{{ photo_crust.url}}" style="width:300px;height:200px;"></p>
     </div>
+
         <div class="recipe-block-right">
+            <h4>{{ recipe_crust_title }}</h4>
                 {% for key, value in ingred_dict_crust.items %}
                         <div class="print-ingredients"> {{key}} - {{value}}</div>
                 {% endfor %}
@@ -31,7 +33,9 @@
         <h4>Для крема внутри коржа понадобится:</h4>
         <p><img class="img-article-left thumb" src="{{ photo_cream_in.url}}" style="width:300px;height:200px;"></p>
     </div>
+
         <div class="recipe-block-right">
+            <h4>{{ r_cream_in_title }}</h4>
                 {% for key, value in ingred_dict_cream_in.items %}
                         <div class="print-ingredients"> {{key}} - {{value}}</div>
                 {% endfor %}
@@ -44,18 +48,20 @@
         <h4>Для крема для выравнивания понадобится:</h4>
         <p><img class="img-article-left thumb" src="{{ photo_cream_out.url}}" style="width:300px;height:200px;"></p>
     </div>
+
         <div class="recipe-block-right">
+            <h4>{{ r_cream_out_title }}</h4>
                 {% for key, value in ingred_dict_cream_out.items %}
                         <div class="print-ingredients"> {{key}} - {{value}}</div>
                 {% endfor %}
         </div>
 </div>
 
-<div class="text-block-index"> Рецепт коржа </div>
+<div class="text-block-index"> {{ recipe_crust_title }}</div>
 <div class="text-recipe">{{recipe_crust|linebreaks}}</div>
-<div class="text-block-index"> Рецепт крема внутри коржа </div>
+<div class="text-block-index">{{ r_cream_in_title }} </div>
 <div class="text-recipe">{{recipe_cream_in|linebreaks}}</div>
-<div class="text-block-index"> Рецепт крема для выравнивания </div>
+<div class="text-block-index">{{ r_cream_out_title }} </div>
 <div class="text-recipe">{{recipe_cream_out|linebreaks}}</div>
 
 
