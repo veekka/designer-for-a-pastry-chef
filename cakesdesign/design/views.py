@@ -66,19 +66,19 @@ def bycakerecipe(request):
         form = BycakerecipeForm(request.POST)
         if form.is_valid():
             form_params = float(request.POST.get("form_params", 10))
+            koef = (form_params * form_params) / 100
             cake_recipe = request.POST.get("cake_recipe", "Undefined")
             r = Recipes.objects.get(pk=cake_recipe)
             recipe = r.recipe
             photo = r.photo
             d = RecipesIngredients.objects.values('count', 'measure', 'ingredient_id').filter(recipe_id=cake_recipe)
-            if form_params > 10:
-                koef = int((form_params*form_params) / 100)
-            else:
-                koef = 1
+
             recipe_dict = {}
+
             for i in range(len(d)):
                 recipe_dict[Ingredients.objects.get(pk=d[i]['ingredient_id'])] = str(math.ceil(d[i]['count']*koef)) +\
                                                                                  " " + d[i]['measure']
+
 
             context = {
                 "title": "Рецепт",
@@ -98,14 +98,10 @@ def constructor(request):
         form = CompoundRecipesForm(request.POST)
         if form.is_valid():
             form_params = float(request.POST.get("form_params", 10))
+            koef = (form_params * form_params) / 100
             crust_choice = request.POST.get("crust_choice", "Undefined")
             cream_choice_in = request.POST.get("cream_choice_in", "Undefined")
             cream_choice_out = request.POST.get("cream_choice_out", "Undefined")
-
-            if form_params > 10:
-                koef = round((form_params*form_params) / 100, 1)
-            else:
-                koef = 1
 
 
             res_tb = Recipes.objects.all()
