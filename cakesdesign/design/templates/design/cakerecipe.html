@@ -12,6 +12,9 @@
 </nav>
 
 
+<a href="{% url 'generate-pdf' %}" class="btn btn-lg" style="background-color: #f2eceb; margin-left:950px;">Печать</a>
+
+
 <div class="recipe-box">
     <div class="recipe-block-left">
         <p><img class="img-article-left thumb" src="{{ photo.url}}" style="width:300px;height:200px;"></p>
@@ -27,5 +30,7 @@
 
 <div class="text-block-index"> Этапы приготовления </div>
 <div class="text-recipe">{{recipe|linebreaks}}</div>
+
+
 
 {% endblock %}

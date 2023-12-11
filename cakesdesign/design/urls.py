@@ -14,4 +14,5 @@ urlpatterns = [
     path('compound_recipe/', constructor, name='compound_recipe'),
     path('delivery/', delivery, name='delivery'),
     path('contact/', contact, name='contact'),
+    path('generate-pdf/', generate_pdf, name='generate-pdf')
 ]
