@@ -12,7 +12,7 @@
   </ol>
 </nav>
 
-
+<a href="{% url 'generate-compound-recipe-pdf' %}" target="_blank" class="btn btn-lg" style="background-color: #f2eceb; margin-left:950px;">Печать</a>
 
 <div class="recipe-box">
     <div class="recipe-block-left">
@@ -21,7 +21,7 @@
     </div>
 
         <div class="recipe-block-right">
-            <h4>{{ recipe_crust_title }}</h4>
+            <h4>{{ title_crust }}</h4>
                 {% for key, value in ingred_dict_crust.items %}
                         <div class="print-ingredients"> {{key}} - {{value}}</div>
                 {% endfor %}
@@ -35,11 +35,25 @@
     </div>
 
         <div class="recipe-block-right">
-            <h4>{{ r_cream_in_title }}</h4>
+            <h4>{{ title_cream_in }}</h4>
                 {% for key, value in ingred_dict_cream_in.items %}
                         <div class="print-ingredients"> {{key}} - {{value}}</div>
                 {% endfor %}
 
+        </div>
+</div>
+
+<div class="recipe-box">
+    <div class="recipe-block-left">
+        <h4>Для начинки понадобится:</h4>
+        <p><img class="img-article-left thumb" src="{{ photo_filling.url}}" style="width:300px;height:200px;"></p>
+    </div>
+
+        <div class="recipe-block-right">
+            <h4>{{ title_filling }}</h4>
+                {% for key, value in ingred_dict_filling.items %}
+                        <div class="print-ingredients"> {{key}} - {{value}}</div>
+                {% endfor %}
         </div>
 </div>
 
@@ -50,18 +64,20 @@
     </div>
 
         <div class="recipe-block-right">
-            <h4>{{ r_cream_out_title }}</h4>
+            <h4>{{ title_cream_out }}</h4>
                 {% for key, value in ingred_dict_cream_out.items %}
                         <div class="print-ingredients"> {{key}} - {{value}}</div>
                 {% endfor %}
         </div>
 </div>
 
-<div class="text-block-index"> {{ recipe_crust_title }}</div>
+<div class="text-block-index"> {{ title_crust }}</div>
 <div class="text-recipe">{{recipe_crust|linebreaks}}</div>
-<div class="text-block-index">{{ r_cream_in_title }} </div>
+<div class="text-block-index">{{ title_cream_in }} </div>
 <div class="text-recipe">{{recipe_cream_in|linebreaks}}</div>
-<div class="text-block-index">{{ r_cream_out_title }} </div>
+<div class="text-block-index"> {{ title_filling }}</div>
+<div class="text-recipe">{{recipe_filling|linebreaks}}</div>
+<div class="text-block-index">{{ title_cream_out }} </div>
 <div class="text-recipe">{{recipe_cream_out|linebreaks}}</div>
 
 

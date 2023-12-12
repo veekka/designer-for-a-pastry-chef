@@ -14,5 +14,6 @@ urlpatterns = [
     path('compound_recipe/', constructor, name='compound_recipe'),
     path('delivery/', delivery, name='delivery'),
     path('contact/', contact, name='contact'),
-    path('generate-pdf/', generate_pdf, name='generate-pdf')
+    path('generate-recipe-pdf/', generate_recipe_pdf, name='generate-recipe-pdf'),
+    path('generate-compound-recipe-pdf/', generate_compound_recipe_pdf, name='generate-compound-recipe-pdf'),
 ]

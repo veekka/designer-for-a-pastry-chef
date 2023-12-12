@@ -1,11 +1,8 @@
 from io import BytesIO
 from textwrap import TextWrapper
 
-from reportlab.lib import colors
-from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
-from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.pagesizes import A4
 
 import json
@@ -16,8 +13,6 @@ from django.views.generic import ListView, DetailView, CreateView, FormView
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import render, get_object_or_404
 import math
-
-from reportlab.platypus import Frame, Spacer, Paragraph
 
 from design.forms import *
 from design.models import *
@@ -124,7 +119,119 @@ def bycakerecipe(request):
     return render(request, 'design/bycakerecipe.html', {"title": "Выбор торта", "form": form})
 
 
-def generate_pdf(request):
+def constructor(request):
+    if request.method == 'POST':
+        form = CompoundRecipesForm(request.POST)
+        if form.is_valid():
+            form_params = float(request.POST.get("form_params", 10))
+            koef = (form_params * form_params) / 100
+            crust_choice = request.POST.get("crust_choice", "Undefined")
+            filling_choice = request.POST.get("filling_choice", "Undefined")
+            cream_choice_in = request.POST.get("cream_choice_in", "Undefined")
+            cream_choice_out = request.POST.get("cream_choice_out", "Undefined")
+
+            res_tb = Recipes.objects.all()
+            res_ingred_tb = RecipesIngredients.objects.all()
+            ingred_tb = Ingredients.objects.all()
+
+            title_crust, photo_crust, recipe_crust, ingred_dict_crust = get_item_details(crust_choice, res_tb,
+                                                                                res_ingred_tb, ingred_tb, koef)
+            title_filling, photo_filling, recipe_filling, ingred_dict_filling = get_item_details(filling_choice,
+                                                                                res_tb, res_ingred_tb, ingred_tb, koef)
+            title_cream_in, photo_cream_in, recipe_cream_in, ingred_dict_cream_in = get_item_details(cream_choice_in,
+                                                                                res_tb, res_ingred_tb, ingred_tb, koef)
+            title_cream_out, photo_cream_out, recipe_cream_out, ingred_dict_cream_out = get_item_details(
+                                                            cream_choice_out, res_tb, res_ingred_tb, ingred_tb, koef)
+
+            all_ingred_dict = {}
+            all_ingred_keys = list(set(list(ingred_dict_crust.keys()) + list(ingred_dict_cream_in.keys())+
+                                       list(ingred_dict_filling.keys()) + list(ingred_dict_cream_out.keys())))
+            for i in range(len(all_ingred_keys)):
+                all_ingred_dict[all_ingred_keys[i]] = str(
+                int(ingred_dict_crust.get(all_ingred_keys[i], "0 г").split()[0])+
+                int(ingred_dict_filling.get(all_ingred_keys[i], "0 г").split()[0])+
+                int(ingred_dict_cream_in.get(all_ingred_keys[i], "0 г").split()[0]) +
+                int(ingred_dict_cream_out.get(all_ingred_keys[i], "0 г").split()[0]))+\
+                ingred_dict_crust.get(all_ingred_keys[i], "0 г").split()[1]
+
+            context = {
+                "title": "Составной рецепт",
+                "ingred_dict_crust": ingred_dict_crust,
+                "title_crust": title_crust,
+                "recipe_crust": recipe_crust,
+                "photo_crust": photo_crust,
+                "ingred_dict_filling": ingred_dict_filling,
+                "title_filling": title_filling,
+                "recipe_filling": recipe_filling,
+                "photo_filling": photo_filling,
+                "ingred_dict_cream_in": ingred_dict_cream_in,
+                "title_cream_in": title_cream_in,
+                "recipe_cream_in": recipe_cream_in,
+                "photo_cream_in": photo_cream_in,
+                "ingred_dict_cream_out": ingred_dict_cream_out,
+                "title_cream_out": title_cream_out,
+                "recipe_cream_out": recipe_cream_out,
+                "photo_cream_out": photo_cream_out,
+                "all_ingred_dict": all_ingred_dict,
+                "form_params": form_params,
+            }
+
+            d_context = {}
+            d_ingred = {}
+            d_all_ingred = {}
+            for part in ["_crust", "_filling", "_cream_in", "_cream_out"]:
+                d = {}
+                for k, v in context["ingred_dict"+part].items():
+                    d[str(k)] = str(v)
+                d_ingred[part] = d
+
+            for k, v in context["all_ingred_dict"].items():
+                d_all_ingred[str(k)] = str(v)
+
+            for k, v in context.items():
+                d_context[k] = str(v)
+
+            d_context["d_ingred"] = d_ingred
+            d_context["d_all_ingred"] = d_all_ingred
+
+            context_json = json.dumps(d_context)
+            with open("context.json", "w") as file:
+                file.write(context_json)
+
+            return render(request, 'design/compound_recipe.html', context=context)
+    else:
+        form = CompoundRecipesForm()
+    return render(request, 'design/constructor.html', {"title": "Части торта", "form": form})
+
+
+def get_item_details(choice, item, res_ingred_tb, ingred_tb, koef):
+    r = item.get(pk=choice)
+    title = r.title
+    photo = r.photo
+    recipe = r.recipe
+    d_item = res_ingred_tb.values('count', 'measure', 'ingredient_id').filter(recipe_id=choice)
+
+    dict_ingred_item = {}
+    for i in range(len(d_item)):
+        dict_ingred_item[ingred_tb.get(pk=d_item[i]['ingredient_id'])] = str(
+            math.ceil(d_item[i]['count'] * koef)) + " " + d_item[i]['measure']
+
+    return (title, photo, recipe, dict_ingred_item)
+
+def delivery(request):
+    return render(request, 'design/delivery.html')
+
+
+def contact(request):
+    return render(request, 'design/contact.html')
+
+
+def pageNotFound(request, exception):
+    return HttpResponseNotFound('<h1>Страница не найдена</h1>')
+
+
+
+def generate_recipe_pdf(request):
     with open("context.json", "r") as file:
         context_json = file.read()
     context = json.loads(context_json)
@@ -138,6 +245,183 @@ def generate_pdf(request):
 
     path_image_background = "C:/Users/Zaits/PycharmProjects/designer-for-a-pastry-chef/cakesdesign/media/photos/2023/11/08/odnotonnie-oboi.jpg"
     c.drawImage(path_image_background, 0, 0, width=width, height=height)
+
+
+    faceName = cyrillic()
+
+    size_title = 35
+    size_chapter = 20
+    size_text = 9
+
+    #ОФОРМЛЯЕМ КАРТИНКУ
+    path_image = "C:/Users/Zaits/PycharmProjects/designer-for-a-pastry-chef/cakesdesign/media/" + context["photo"]
+    c.drawImage(path_image, 30, 620, width=250, height=200)
+    #ОФОРМЛЯЕМ ЗАГОЛОВОК
+    text = context["title"].split("\n")
+    y_title = draw_wrap_text(c, width=15, text=text, x_begin=310, y_begin=750, faceName=faceName,
+              size=size_title, interval=40,  path_image_background=path_image_background, r=0.9, g=0.5, b=0.4)
+
+
+    # ОФОРМЛЯЕМ ИНГРЕДИЕНТЫ
+    c.setFillColorRGB(0.9, 0.5, 0.4)
+    c.setFont(faceName + '1251', size_chapter)
+    c.drawString(50, 550, "ИНГРЕДИЕНТЫ:")
+    c.setFont(faceName + '1251', 10)
+    c.drawString(50, 535, f"На форму {context['form_params']} см")
+    l = []
+    for k, v in context["d_ingred"].items():
+        l.append(f"□  {v} — {k}")
+
+    y_ingred = draw_wrap_text(c, width=40, text=l, x_begin=50, y_begin=515, faceName=faceName,
+              size=size_text, interval=15,  path_image_background=path_image_background, r=0, g=0, b=0)
+
+    #СДЕЛАЕМ ПРЯМОУГОНИК
+    c.setStrokeColorRGB(0.9, 0.5, 0.4)
+    c.setLineWidth(4)
+    c.rect(30, y_ingred-20, 250, (550-y_ingred+60), stroke=1, fill=0)
+
+    #ОФОРМЛЯЕМ КАК ГОТОВИТЬ
+    c.setFillColorRGB(0.9, 0.5, 0.4)
+    c.setFont(faceName + '1251', size_chapter)
+    if y_title >= 550:
+        y_cook = 550
+    else:
+        y_cook = y_title-50
+    c.drawString(300, y_cook, "КАК ГОТОВИТЬ:")
+    text = context["recipe"].split("\n")
+    draw_wrap_text(c, width=55, text=text, x_begin=300, y_begin=y_cook-30, faceName=faceName, size=size_text,
+              interval=12, path_image_background=path_image_background, r=0, g=0, b=0)
+
+    c.setTitle(f'{file_name}')
+    c.showPage()
+    c.save()
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response
+
+def generate_compound_recipe_pdf(request):
+    with open("context.json", "r") as file:
+        context_json = file.read()
+    context = json.loads(context_json)
+
+    response = HttpResponse(content_type='application/pdf')
+    file_name = "Рецепт составного торта"
+    response['Content-Disposition'] = f'inline; filename="{file_name}.pdf"'
+    width, height = A4
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+
+    faceName = cyrillic()
+
+    size_title = 35
+    size_chapter = 20
+    size_text = 9
+
+    x_img = 30
+    x_left = 50
+    y_left = 620
+    x_right = 300
+    y_right = 750
+    # ФОН
+    path_image_background = "C:/Users/Zaits/PycharmProjects/designer-for-a-pastry-chef/cakesdesign/media/photos/2023/11/08/odnotonnie-oboi.jpg"
+
+    for part in ["_crust", "_filling", "_cream_in", "_cream_out"]:
+
+        c.drawImage(path_image_background, 0, 0, width=width, height=height)
+
+        # ОФОРМЛЯЕМ КАРТИНКУ
+        path_image = "C:/Users/Zaits/PycharmProjects/designer-for-a-pastry-chef/cakesdesign/media/" + context["photo"+part]
+        c.drawImage(path_image, x_img, y_left, width=250, height=200)
+        # ОФОРМЛЯЕМ ЗАГОЛОВОК
+        text = context["title"+part].split("\n")
+        y_title = draw_wrap_text(c, width=13, text=text, x_begin=x_right, y_begin=y_right, faceName=faceName,
+                                 size=size_title, interval=40, path_image_background=path_image_background, r=0.9,
+                                 g=0.5, b=0.4)
+        # ОФОРМЛЯЕМ ИНГРЕДИЕНТЫ
+        c.setFillColorRGB(0.9, 0.5, 0.4)
+        c.setFont(faceName + '1251', size_chapter)
+        c.drawString(x_left, y_left-70, "ИНГРЕДИЕНТЫ:")
+        c.setFont(faceName + '1251', 10)
+        c.drawString(x_left, y_left-85, f"На форму {context['form_params']} см")
+        l = []
+        for k, v in context["d_ingred"][part].items():
+            l.append(f"□  {v} — {k}")
+
+        y_ingred = draw_wrap_text(c, width=40, text=l, x_begin=x_left, y_begin=y_left-105, faceName=faceName,
+                                  size=size_text, interval=15, path_image_background=path_image_background, r=0, g=0,
+                                  b=0)
+
+        # СДЕЛАЕМ ПРЯМОУГОНИК
+        c.setStrokeColorRGB(0.9, 0.5, 0.4)
+        c.setLineWidth(4)
+        c.rect(x_img, y_ingred - 20, 250, (y_left-70 - y_ingred + 60), stroke=1, fill=0)
+        # ОФОРМЛЯЕМ КАК ГОТОВИТЬ
+        c.setFillColorRGB(0.9, 0.5, 0.4)
+        c.setFont(faceName + '1251', size_chapter)
+        if y_title >= y_left-70:
+            y_cook = y_left-70
+        else:
+            y_cook = y_title - 50
+        c.drawString(x_right, y_cook, "КАК ГОТОВИТЬ:")
+        text = context["recipe"+part].split("\n")
+        draw_wrap_text(c, width=55, text=text, x_begin=x_right, y_begin=y_cook - 30, faceName=faceName, size=size_text,
+                  interval=12, path_image_background=path_image_background, r=0, g=0, b=0)
+
+        c.showPage()
+        y_left = 620
+        y_right = 750
+
+    # ОФОРМЛЯЕМ ВСЕ ИНГРЕДИЕНТЫ
+    c.drawImage(path_image_background, 0, 0, width=width, height=height)
+    c.setFillColorRGB(0.9, 0.5, 0.4)
+    c.setFont(faceName + '1251', size_chapter)
+    c.drawString(x_left, 800, "ВСЕ ИНГРЕДИЕНТЫ:")
+    c.setFont(faceName + '1251', 10)
+    c.drawString(x_left, 785, f"На форму {context['form_params']} см")
+    l = []
+    for k, v in context["d_all_ingred"].items():
+        l.append(f"□  {v} — {k}")
+
+    draw_wrap_text(c, width=40, text=l, x_begin=x_left, y_begin=760, faceName=faceName,
+                              size=size_text, interval=15, path_image_background=path_image_background, r=0, g=0,
+                              b=0)
+    c.showPage()
+    c.setTitle(f'{file_name}')
+    c.save()
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response
+
+def draw_wrap_text(c, width, text, y_begin, faceName, size, interval, x_begin, path_image_background, r,g,b):
+    wrapper = TextWrapper(width)
+    wrapped_text = list()
+    for line in text:
+        wrapped_text += wrapper.wrap(line)
+
+    text_object = c.beginText()
+    text_object.setTextOrigin(x_begin, y_begin)
+    text_object.setFont(faceName + '1251', size)
+    text_object.setFillColorRGB(r, g, b)
+
+    for line in wrapped_text:
+        text_object.setFont(faceName + '1251', size)
+        text_object.setLeading(interval)
+        text_object.textLine(line)
+        y_begin -= interval
+
+        if y_begin <= interval:
+            c.drawText(text_object)
+            c.showPage()
+            c.drawImage(path_image_background, 0, 0, width=600, height=850)
+            text_object = c.beginText(x_begin, 800)
+            y_begin = 800
+
+    c.drawText(text_object)
+    return y_begin
+
+def cyrillic():
 
     fname = 'a010013l'
 
@@ -175,168 +459,8 @@ def generate_pdf(request):
     for i in range(128, 256):
         cyrenc[i] = cp1251[i - 128]
 
-    size_title = 35
-    size_chapter = 20
-    size_text = 9
-
     pdfmetrics.registerEncoding(cyrenc)
     pdfmetrics.registerTypeFace(cyrFace)
     pdfmetrics.registerFont(pdfmetrics.Font(faceName + '1251', faceName, 'CP1251'))
-    #c.setFont(faceName + '1251', size_title)
 
-    #ОФОРМЛЯЕМ КАРТИНКУ
-    path_image = "C:/Users/Zaits/PycharmProjects/designer-for-a-pastry-chef/cakesdesign/media/" + context["photo"]
-    c.drawImage(path_image, 30, 620, width=250, height=200)
-
-    #ОФОРМЛЯЕМ ЗАГОЛОВОК
-    text = context["title"].split("\n")
-    wrap_text(c, width=15, text=text, x_begin=310, y_begin=750, faceName=faceName,
-              size=size_title, interval=40,  path_image_background=path_image_background, r=0.9, g=0.5, b=0.4)
-
-
-    # ОФОРМЛЯЕМ ИНГРЕДИЕНТЫ
-    c.setFillColorRGB(0.9, 0.5, 0.4)
-    c.setFont(faceName + '1251', size_chapter)
-    c.drawString(50, 550, "ИНГРЕДИЕНТЫ:")
-    c.setFont(faceName + '1251', 10)
-    c.drawString(50, 535, f"На форму {context['form_params']} см")
-    l = []
-    for k, v in context["d_ingred"].items():
-        l.append(f"□  {v} — {k}")
-
-    wrap_text(c, width=40, text=l, x_begin=50, y_begin=515, faceName=faceName,
-              size=size_text, interval=15,  path_image_background=path_image_background, r=0, g=0, b=0)
-
-    #ОФОРМЛЯЕМ КАК ГОТОВИТЬ
-    c.setFillColorRGB(0.9, 0.5, 0.4)
-    c.setFont(faceName + '1251', size_chapter)
-    c.drawString(300, 550, "КАК ГОТОВИТЬ:")
-    text = context["recipe"].split("\n")
-    wrap_text(c, width=55, text=text, x_begin=300, y_begin=520, faceName=faceName, size=size_text,
-              interval=12, path_image_background=path_image_background, r=0, g=0, b=0)
-
-    c.setTitle(f'{file_name}')
-    c.showPage()
-    c.save()
-    pdf = buffer.getvalue()
-    buffer.close()
-    response.write(pdf)
-    return response
-
-
-def wrap_text(c, width, text, y_begin, faceName, size, interval, x_begin, path_image_background, r,g,b):
-    wrapper = TextWrapper(width)
-    wrapped_text = list()
-    for line in text:
-        wrapped_text += wrapper.wrap(line)
-
-    text_object = c.beginText()
-    text_object.setTextOrigin(x_begin, y_begin)
-    text_object.setFont(faceName + '1251', size)
-    text_object.setFillColorRGB(r,g,b)
-    for line in wrapped_text:
-        text_object.setFont(faceName + '1251', size)
-        text_object.setLeading(interval)
-        text_object.textLine(line)
-        y_begin -= interval
-        if y_begin <= interval:
-            c.drawText(text_object)
-            c.showPage()
-            c.drawImage(path_image_background, 0, 0, width=600, height=850)
-            text_object = c.beginText(x_begin, 800)
-            y_begin = 800
-    c.drawText(text_object)
-
-def constructor(request):
-    if request.method == 'POST':
-        form = CompoundRecipesForm(request.POST)
-        if form.is_valid():
-            form_params = float(request.POST.get("form_params", 10))
-            koef = (form_params * form_params) / 100
-            crust_choice = request.POST.get("crust_choice", "Undefined")
-            cream_choice_in = request.POST.get("cream_choice_in", "Undefined")
-            cream_choice_out = request.POST.get("cream_choice_out", "Undefined")
-
-
-            res_tb = Recipes.objects.all()
-            res_ingred_tb = RecipesIngredients.objects.all()
-            ingred_tb = Ingredients.objects.all()
-
-            r_crust = res_tb.get(pk=crust_choice)
-            recipe_crust_title = r_crust.title
-            recipe_crust = r_crust.recipe
-            photo_crust = r_crust.photo
-            d_crust = res_ingred_tb.values('count', 'measure', 'ingredient_id').filter(recipe_id=crust_choice)
-
-            r_cream_in = res_tb.get(pk=cream_choice_in)
-            r_cream_in_title = r_cream_in.title
-            recipe_cream_in = r_cream_in.recipe
-            photo_cream_in = r_cream_in.photo
-            d_cream_in = res_ingred_tb.values('count', 'measure', 'ingredient_id').filter(
-                recipe_id=cream_choice_in)
-
-            r_cream_out = res_tb.get(pk=cream_choice_out)
-            r_cream_out_title = r_cream_out.title
-            recipe_cream_out = r_cream_out.recipe
-            photo_cream_out = r_cream_out.photo
-            d_cream_out = res_ingred_tb.values('count', 'measure', 'ingredient_id').filter(
-                recipe_id=cream_choice_out)
-
-            ingred_dict_crust = {}
-            for i in range(len(d_crust)):
-                ingred_dict_crust[ingred_tb.get(pk=d_crust[i]['ingredient_id'])] = str(
-                    math.ceil(d_crust[i]['count']*koef)) + " " + d_crust[i]['measure']
-            ingred_dict_cream_in = {}
-            for i in range(len(d_cream_in)):
-                ingred_dict_cream_in[ingred_tb.get(pk=d_cream_in[i]['ingredient_id'])] = str(
-                    math.ceil(d_cream_in[i]['count'] * koef)) + " " + d_cream_in[i]['measure']
-
-            ingred_dict_cream_out = {}
-            for i in range(len(d_cream_out)):
-                ingred_dict_cream_out[ingred_tb.get(pk=d_cream_out[i]['ingredient_id'])] = str(
-                    math.ceil(d_cream_out[i]['count'] * koef)) + " " + d_cream_out[i]['measure']
-
-            all_ingred_dict = {}
-            all_ingred_keys = list(set(list(ingred_dict_crust.keys()) + list(ingred_dict_cream_in.keys())+
-                                       list(ingred_dict_cream_out.keys())))
-            for i in range(len(all_ingred_keys)):
-                all_ingred_dict[all_ingred_keys[i]] = str(
-                int(ingred_dict_crust.get(all_ingred_keys[i], "0 г").split()[0])+
-                int(ingred_dict_cream_in.get(all_ingred_keys[i], "0 г").split()[0])+
-                int(ingred_dict_cream_out.get(all_ingred_keys[i], "0 г").split()[0]))+\
-                ingred_dict_crust.get(all_ingred_keys[i], "0 г").split()[1]
-
-            context = {
-                "title": "Составной рецепт",
-                "ingred_dict_crust": ingred_dict_crust,
-                "recipe_crust_title": recipe_crust_title,
-                "recipe_crust": recipe_crust,
-                "photo_crust": photo_crust,
-                "ingred_dict_cream_in": ingred_dict_cream_in,
-                "r_cream_in_title": r_cream_in_title,
-                "recipe_cream_in": recipe_cream_in,
-                "photo_cream_in": photo_cream_in,
-                "ingred_dict_cream_out": ingred_dict_cream_out,
-                "r_cream_out_title": r_cream_out_title,
-                "recipe_cream_out": recipe_cream_out,
-                "photo_cream_out": photo_cream_out,
-                "all_ingred_dict": all_ingred_dict,
-                "form_params": form_params,
-            }
-            return render(request, 'design/compound_recipe.html', context=context)
-    else:
-        form = CompoundRecipesForm()
-    return render(request, 'design/constructor.html', {"title": "Части торта", "form": form})
-
-
-
-def delivery(request):
-    return render(request, 'design/delivery.html')
-
-
-def contact(request):
-    return render(request, 'design/contact.html')
-
-
-def pageNotFound(request, exception):
-    return HttpResponseNotFound('<h1>Страница не найдена</h1>')
+    return faceName
